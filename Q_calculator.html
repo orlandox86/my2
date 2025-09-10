@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Калькулятор Q(t)</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; }
+        .input-group { margin: 10px 0; }
+        label { display: inline-block; width: 200px; }
+        input { width: 100px; }
+        #results { margin-top: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Калькулятор Q(t)</h1>
+    
+    <div class="input-group">
+        <label>Hf (МДж/кг):</label>
+        <input type="number" id="hf" value="13.8" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>ψ (кг/(с·м²)):</label>
+        <input type="number" id="psi" value="0.06" step="0.01">
+    </div>
+    <div class="input-group">
+        <label>v (м/с):</label>
+        <input type="number" id="v" value="0.0108" step="0.0001">
+    </div>
+    <div class="input-group">
+        <label>η (безразмерный):</label>
+        <input type="number" id="eta" value="0.97" step="0.01">
+    </div>
+    <div class="input-group">
+        <label>t (с):</label>
+        <input type="number" id="t" value="60" step="1">
+    </div>
+    <div class="input-group">
+        <label>Δt (с):</label>
+        <input type="number" id="dt" value="10" step="1">
+    </div>
+    <div class="input-group">
+        <label>t_max (с):</label>
+        <input type="number" id="t_max" value="600" step="10">
+    </div>
+
+    <button onclick="calculate()">Рассчитать</button>
+
+    <div id="results">
+        <h3>Результат для t = <span id="current_t"></span> с:</h3>
+        <p>Q(t) = <span id="qt_result"></span> кВт</p>
+        <p>Sгор(t) = <span id="s_result"></span> м²</p>
+    </div>
+
+    <div id="chart"></div>
+
+    <table id="data_table">
+        <thead>
+            <tr>
+                <th>Время (с)</th>
+                <th>Q(t) (кВт)</th>
+                <th>Sгор(t) (м²)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        function calculate() {
+            const hf = parseFloat(document.getElementById('hf').value);
+            const psi = parseFloat(document.getElementById('psi').value);
+            const v = parseFloat(document.getElementById('v').value);
+            const eta = parseFloat(document.getElementById('eta').value);
+            const t = parseFloat(document.getElementById('t').value);
+            const dt = parseFloat(document.getElementById('dt').value);
+            const t_max = parseFloat(document.getElementById('t_max').value);
+
+            // Расчет для текущего t
+            const qt = hf * psi * Math.PI * Math.pow(v * t, 2) * eta * 1000;
+            const s = Math.PI * Math.pow(v * t, 2);
+
+            document.getElementById('current_t').textContent = t.toFixed(1);
+            document.getElementById('qt_result').textContent = qt.toFixed(2);
+            document.getElementById('s_result').textContent = s.toFixed(2);
+
+            // Расчет таблицы и графика
+            const times = [];
+            const qts = [];
+            const areas = [];
+            const tbody = document.getElementById('data_table').getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            for (let current_t = 0; current_t <= t_max; current_t += dt) {
+                const current_qt = hf * psi * Math.PI * Math.pow(v * current_t, 2) * eta * 1000;
+                const current_s = Math.PI * Math.pow(v * current_t, 2);
+
+                times.push(current_t);
+                qts.push(current_qt);
+                areas.push(current_s);
+
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = current_t.toFixed(1);
+                row.insertCell(1).textContent = current_qt.toFixed(2);
+                row.insertCell(2).textContent = current_s.toFixed(2);
+            }
+
+            // График
+            const trace = {
+                x: times,
+                y: qts,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Q(t)'
+            };
+
+            const layout = {
+                title: 'График Q(t)',
+                xaxis: {
+                    title: 'Время (с)'
+                },
+                yaxis: {
+                    title: 'Q(t) (кВт)'
+                }
+            };
+
+            Plotly.newPlot('chart', [trace], layout);
+        }
+
+        // Вызов расчета при загрузке страницы
+        calculate();
+    </script>
+</body>
+</html>
