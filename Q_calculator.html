@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Калькулятор Q(t)</title>
+    <title>Калькулятор Q(t) и массы</title>
     <meta charset="UTF-8">
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <style>
@@ -13,38 +13,46 @@
         table { border-collapse: collapse; width: 100%; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
         th { background-color: #f4f4f4; }
+        .parameter-description { color: #666; font-size: 0.9em; margin-left: 210px; }
     </style>
 </head>
 <body>
-    <h1>Калькулятор Q(t)</h1>
+    <h1>Калькулятор Q(t) и массы сгоревшего вещества</h1>
     
     <div class="input-group">
         <label>Hf (МДж/кг):</label>
         <input type="number" id="hf" value="13.8" step="0.1">
+        <div class="parameter-description">Нижняя теплота сгорания материала</div>
     </div>
     <div class="input-group">
         <label>ψ (кг/(с·м²)):</label>
         <input type="number" id="psi" value="0.06" step="0.01">
+        <div class="parameter-description">Массовая скорость выгорания</div>
     </div>
     <div class="input-group">
         <label>v (м/с):</label>
         <input type="number" id="v" value="0.0108" step="0.0001">
+        <div class="parameter-description">Линейная скорость распространения пламени</div>
     </div>
     <div class="input-group">
         <label>η (безразмерный):</label>
         <input type="number" id="eta" value="0.97" step="0.01">
+        <div class="parameter-description">Коэффициент полноты сгорания</div>
     </div>
     <div class="input-group">
         <label>t (с):</label>
         <input type="number" id="t" value="60" step="1">
+        <div class="parameter-description">Время для мгновенного расчета</div>
     </div>
     <div class="input-group">
         <label>Δt (с):</label>
         <input type="number" id="dt" value="10" step="1">
+        <div class="parameter-description">Шаг времени для таблицы</div>
     </div>
     <div class="input-group">
         <label>t_max (с):</label>
         <input type="number" id="t_max" value="600" step="10">
+        <div class="parameter-description">Максимальное время расчета</div>
     </div>
 
     <button onclick="calculate()">Рассчитать</button>
@@ -53,9 +61,11 @@
         <h3>Результат для t = <span id="current_t"></span> с:</h3>
         <p>Q(t) = <span id="qt_result"></span> кВт</p>
         <p>Sгор(t) = <span id="s_result"></span> м²</p>
+        <p>Масса сгоревшего вещества = <span id="mass_result"></span> кг</p>
     </div>
 
     <div id="chart"></div>
+    <div id="mass_chart"></div>
 
     <table id="data_table">
         <thead>
@@ -63,6 +73,7 @@
                 <th>Время (с)</th>
                 <th>Q(t) (кВт)</th>
                 <th>Sгор(t) (м²)</th>
+                <th>Масса (кг)</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -79,36 +90,42 @@
             const t_max = parseFloat(document.getElementById('t_max').value);
 
             // Расчет для текущего t
-            const qt = hf * psi * Math.PI * Math.pow(v * t, 2) * eta * 1000;
             const s = Math.PI * Math.pow(v * t, 2);
+            const qt = hf * psi * s * eta * 1000;
+            const mass = psi * s * t;
 
             document.getElementById('current_t').textContent = t.toFixed(1);
             document.getElementById('qt_result').textContent = qt.toFixed(2);
             document.getElementById('s_result').textContent = s.toFixed(2);
+            document.getElementById('mass_result').textContent = mass.toFixed(2);
 
-            // Расчет таблицы и графика
+            // Расчет таблицы и графиков
             const times = [];
             const qts = [];
             const areas = [];
+            const masses = [];
             const tbody = document.getElementById('data_table').getElementsByTagName('tbody')[0];
             tbody.innerHTML = '';
 
             for (let current_t = 0; current_t <= t_max; current_t += dt) {
-                const current_qt = hf * psi * Math.PI * Math.pow(v * current_t, 2) * eta * 1000;
                 const current_s = Math.PI * Math.pow(v * current_t, 2);
+                const current_qt = hf * psi * current_s * eta * 1000;
+                const current_mass = psi * current_s * current_t;
 
                 times.push(current_t);
                 qts.push(current_qt);
                 areas.push(current_s);
+                masses.push(current_mass);
 
                 const row = tbody.insertRow();
                 row.insertCell(0).textContent = current_t.toFixed(1);
                 row.insertCell(1).textContent = current_qt.toFixed(2);
                 row.insertCell(2).textContent = current_s.toFixed(2);
+                row.insertCell(3).textContent = current_mass.toFixed(2);
             }
 
-            // График
-            const trace = {
+            // График Q(t)
+            const trace1 = {
                 x: times,
                 y: qts,
                 type: 'scatter',
@@ -116,7 +133,7 @@
                 name: 'Q(t)'
             };
 
-            const layout = {
+            const layout1 = {
                 title: 'График Q(t)',
                 xaxis: {
                     title: 'Время (с)'
@@ -126,8 +143,33 @@
                 }
             };
 
-            Plotly.newPlot('chart', [trace], layout);
+            // График массы
+            const trace2 = {
+                x: times,
+                y: masses,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Масса сгоревшего вещества'
+            };
+
+            const layout2 = {
+                title: 'График массы сгоревшего вещества',
+                xaxis: {
+                    title: 'Время (с)'
+                },
+                yaxis: {
+                    title: 'Масса (кг)'
+                }
+            };
+
+            Plotly.newPlot('chart', [trace1], layout1);
+            Plotly.newPlot('mass_chart', [trace2], layout2);
         }
+
+        // Добавляем обработчики событий для автоматического обновления при изменении любого параметра
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculate);
+        });
 
         // Вызов расчета при загрузке страницы
         calculate();
