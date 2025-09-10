@@ -1,0 +1,36 @@
+Excel file creation with specified content and formatting is not directly executable as text. However, I will outline the structured content that should be included in the file. The detailed Excel setup should follow these guidelines:
+
+### Sheet: Calculation
+
+#### Parameters Table:
+| Parameter | Value | Unit |
+|-----------|-------|------|
+| Hf        |       |      |
+| ψ         |       |      |
+| v         |       |      |
+| η         |       |      |
+| t         |       |      |
+| Δt        |       |      |
+| t_max     |       |      |
+
+#### Calculation of Q(t):
+- Q(t) = [Insert formula based on parameters]
+
+#### Time Table:
+| Time (s) | Q(t) (unit) |
+|----------|-------------|
+| 0        |             |
+| Δt       |             |
+| 2Δt      |             |
+| ...      |             |
+| t_max    |             |
+
+#### Chart:
+- Embedded chart showing Q(t) vs Time
+
+### Formatting:
+- Highlight input cells for parameters.
+- Headers should include units for clarity.
+- Formulas must be included for automatic calculations.
+- The time series generation should be automatic based on the parameters.
+- The chart should be styled for better visualization.
