@@ -1,278 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Калькулятор Q(t) и массы</title>
     <meta charset="UTF-8">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q Calculator</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 20px; }
-        .input-group { margin: 10px 0; }
-        label { display: inline-block; width: 200px; }
-        input { width: 100px; }
-        select { width: 400px; }
-        #results { margin-top: 20px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: right; }
-        th { background-color: #f4f4f4; }
-        .parameter-description { color: #666; font-size: 0.9em; margin-left: 210px; }
-        .fire-type { margin: 20px 0; }
-        .fire-params { margin-left: 20px; }
+        .chart-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .chart {
+            width: 48%;
+        }
+        .explanation {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1>Калькулятор Q(t) и массы сгоревшего вещества</h1>
-    
-    <div class="input-group">
-        <label>Тип помещения:</label>
-        <select id="roomType" onchange="updateValues()">
-            <option value="">Выберите тип помещения</option>
-            <option value="residential">Жилые помещения гостиниц, общежитий</option>
-            <option value="restaurant">Столовая, зал ресторана</option>
-            <option value="theater">Зал театра, кинотеатра, клуба, цирка</option>
-            <option value="wardrobe">Гардеробы</option>
-            <option value="library">Хранилища библиотек, архивы</option>
-            <option value="museum">Музеи, выставки</option>
-            <option value="utility">Подсобные и бытовые помещения</option>
-            <option value="admin">Административные помещения, учебные классы</option>
-            <option value="shops">Магазины</option>
-            <option value="station">Зал вокзала</option>
-            <option value="parking">Стоянки легковых автомобилей</option>
-            <option value="parking2">Стоянки легковых автомобилей с двухуровневым хранением</option>
-            <option value="stadium">Стадионы</option>
-            <option value="gym">Спортзалы</option>
-        </select>
+    <h1>Q Calculator</h1>
+    <div class="chart-container">
+        <div class="chart" id="graph1"></div>
+        <div class="chart" id="graph2"></div>
     </div>
-
-    <div class="fire-type">
-        <label>Тип распространения пожара:</label>
-        <select id="fireType" onchange="updateTMax()">
-            <option value="circular">Круговое</option>
-            <option value="linear">Линейное</option>
-        </select>
+    <div class="explanation">
+        <h3>Graph 1 Explanation</h3>
+        <p>This graph shows the relationship between X and Y.</p>
     </div>
-
-    <div class="fire-params">
-        <div class="input-group">
-            <label>k (коэффициент):</label>
-            <input type="number" id="k" value="2" step="1" onchange="updateTMax()">
-            <div class="parameter-description">2 для Ф1-Ф4, 4 для Ф5.2 (h < 5.5м), ≥10 для Ф5.2 (h > 5.5м)</div>
-        </div>
-        <div class="input-group">
-            <label>Fпом (площадь помещения, м²):</label>
-            <input type="number" id="roomArea" value="100" step="1" onchange="updateTMax()">
-        </div>
-        <div class="input-group" id="linearFireParams" style="display: none;">
-            <label>b (ширина помещения, м):</label>
-            <input type="number" id="roomWidth" value="10" step="0.1" onchange="updateTMax()">
-        </div>
+    <div class="explanation">
+        <h3>Graph 2 Explanation</h3>
+        <p>This graph represents the relationship between T and Q.</p>
     </div>
-
-    <div class="input-group">
-        <label>Hf (МДж/кг):</label>
-        <input type="number" id="hf" step="0.1">
-        <div class="parameter-description">Нижняя теплота сгорания материала</div>
-    </div>
-    <div class="input-group">
-        <label>ψ (кг/(с·м²)):</label>
-        <input type="number" id="psi" step="0.00001">
-        <div class="parameter-description">Массовая скорость выгорания</div>
-    </div>
-    <div class="input-group">
-        <label>v (м/с):</label>
-        <input type="number" id="v" step="0.0001">
-        <div class="parameter-description">Линейная скорость распространения пламени</div>
-    </div>
-    <div class="input-group">
-        <label>η (безразмерный):</label>
-        <input type="number" id="eta" value="0.97" step="0.01">
-        <div class="parameter-description">Коэффициент полноты сгорания</div>
-    </div>
-    <div class="input-group">
-        <label>t (с):</label>
-        <input type="number" id="t" value="60" step="1">
-        <div class="parameter-description">Время для мгновенного расчета</div>
-    </div>
-    <div class="input-group">
-        <label>Δt (с):</label>
-        <input type="number" id="dt" value="10" step="1">
-        <div class="parameter-description">Шаг времени для таблицы</div>
-    </div>
-    <div class="input-group">
-        <label>t_max (с):</label>
-        <input type="number" id="t_max" readonly>
-        <div class="parameter-description">Максимальное время расчета (вычисляется автоматически)</div>
-    </div>
-
-    <button onclick="calculate()">Рассчитать</button>
-
-    <div id="results">
-        <h3>Результат для t = <span id="current_t"></span> с:</h3>
-        <p>Q(t) = <span id="qt_result"></span> кВт</p>
-        <p>Sгор(t) = <span id="s_result"></span> м²</p>
-        <p>Масса сгоревшего вещества = <span id="mass_result"></span> кг</p>
-    </div>
-
-    <div id="chart"></div>
-    <div id="mass_chart"></div>
-
-    <table id="data_table">
-        <thead>
-            <tr>
-                <th>Время (с)</th>
-                <th>Q(t) (кВт)</th>
-                <th>Sгор(t) (м²)</th>
-                <th>Масса (кг)</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
     <script>
-        // Данные для разных типов помещений
-        const roomData = {
-            residential: { hf: 13.800, psi: 0.0145, v: 0.0045 },
-            restaurant: { hf: 13.800, psi: 0.0145, v: 0.0045 },
-            theater: { hf: 13.800, psi: 0.0145, v: 0.0055 },
-            wardrobe: { hf: 16.700, psi: 0.0250, v: 0.0070 },
-            library: { hf: 14.500, psi: 0.0110, v: 0.0080 },
-            museum: { hf: 13.800, psi: 0.0145, v: 0.0055 },
-            utility: { hf: 14.000, psi: 0.0129, v: 0.00420 },
-            admin: { hf: 14.000, psi: 0.0137, v: 0.0045 },
-            shops: { hf: 15.800, psi: 0.0150, v: 0.0055 },
-            station: { hf: 13.800, psi: 0.0145, v: 0.0055 },
-            parking: { hf: 31.700, psi: 0.0230, v: 0.0068 },
-            parking2: { hf: 31.700, psi: 0.0230, v: 0.0136 },
-            stadium: { hf: 26.400, psi: 0.0040, v: 0.0040 },
-            gym: { hf: 16.700, psi: 0.0240, v: 0.0045 }
-        };
-
-        function updateTMax() {
-            const k = parseFloat(document.getElementById('k').value);
-            const roomArea = parseFloat(document.getElementById('roomArea').value);
-            const v = parseFloat(document.getElementById('v').value);
-            const fireType = document.getElementById('fireType').value;
-            const linearParams = document.getElementById('linearFireParams');
-            
-            let tMax;
-            if (fireType === 'circular') {
-                linearParams.style.display = 'none';
-                tMax = Math.sqrt((k * roomArea) / (Math.PI * v * v));
-            } else {
-                linearParams.style.display = 'block';
-                const b = parseFloat(document.getElementById('roomWidth').value);
-                tMax = (k * roomArea) / (2 * v * b);
-            }
-            
-            document.getElementById('t_max').value = tMax.toFixed(2);
-            calculate();
+        // JavaScript to create both graphs
+        function createGraph1() {
+            // Logic for creating the first graph
         }
-
-        function updateValues() {
-            const roomType = document.getElementById('roomType').value;
-            if (roomType && roomData[roomType]) {
-                document.getElementById('hf').value = roomData[roomType].hf;
-                document.getElementById('psi').value = roomData[roomType].psi;
-                document.getElementById('v').value = roomData[roomType].v;
-                updateTMax();
-            }
+        
+        function createGraph2() {
+            // Logic for creating the second graph
         }
-
-        function calculate() {
-            const hf = parseFloat(document.getElementById('hf').value);
-            const psi = parseFloat(document.getElementById('psi').value);
-            const v = parseFloat(document.getElementById('v').value);
-            const eta = parseFloat(document.getElementById('eta').value);
-            const t = parseFloat(document.getElementById('t').value);
-            const dt = parseFloat(document.getElementById('dt').value);
-            const t_max = parseFloat(document.getElementById('t_max').value);
-
-            // Расчет для текущего t
-            const s = Math.PI * Math.pow(v * t, 2);
-            const qt = hf * psi * s * eta * 1000;
-            const mass = psi * s * t;
-
-            document.getElementById('current_t').textContent = t.toFixed(1);
-            document.getElementById('qt_result').textContent = qt.toFixed(2);
-            document.getElementById('s_result').textContent = s.toFixed(2);
-            document.getElementById('mass_result').textContent = mass.toFixed(2);
-
-            // Расчет таблицы и графиков
-            const times = [];
-            const qts = [];
-            const areas = [];
-            const masses = [];
-            const tbody = document.getElementById('data_table').getElementsByTagName('tbody')[0];
-            tbody.innerHTML = '';
-
-            for (let current_t = 0; current_t <= t_max; current_t += dt) {
-                const current_s = Math.PI * Math.pow(v * current_t, 2);
-                const current_qt = hf * psi * current_s * eta * 1000;
-                const current_mass = psi * current_s * current_t;
-
-                times.push(current_t);
-                qts.push(current_qt);
-                areas.push(current_s);
-                masses.push(current_mass);
-
-                const row = tbody.insertRow();
-                row.insertCell(0).textContent = current_t.toFixed(1);
-                row.insertCell(1).textContent = current_qt.toFixed(2);
-                row.insertCell(2).textContent = current_s.toFixed(2);
-                row.insertCell(3).textContent = current_mass.toFixed(2);
-            }
-
-            // График Q(t)
-            const trace1 = {
-                x: times,
-                y: qts,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Q(t)'
-            };
-
-            const layout1 = {
-                title: 'График Q(t)',
-                xaxis: {
-                    title: 'Время (с)'
-                },
-                yaxis: {
-                    title: 'Q(t) (кВт)'
-                }
-            };
-
-            // График массы
-            const trace2 = {
-                x: times,
-                y: masses,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Масса сгоревшего вещества'
-            };
-
-            const layout2 = {
-                title: 'График массы сгоревшего вещества',
-                xaxis: {
-                    title: 'Время (с)'
-                },
-                yaxis: {
-                    title: 'Масса (кг)'
-                }
-            };
-
-            Plotly.newPlot('chart', [trace1], layout1);
-            Plotly.newPlot('mass_chart', [trace2], layout2);
-        }
-
-        // Добавляем обработчики событий для автоматического обновления при изменении любого параметра
-        document.querySelectorAll('input').forEach(input => {
-            if (input.id !== 't_max') { // Исключаем поле t_max, так как оно только для чтения
-                input.addEventListener('input', calculate);
-            }
-        });
-
-        // Инициализация
-        updateTMax();
-        calculate();
+        
+        createGraph1();
+        createGraph2();
     </script>
 </body>
 </html>
