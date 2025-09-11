@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Fire Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #FF4500; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Fire Calculator</h1>
+    <p>This calculator includes mass burning rate charts and calculations for various materials.</p>
+    <h2>Burn Rate Calculation</h2>
+    <p>Enter the parameters below:</p>
+    <form id="burnRateForm">
+        <label for="material">Material:</label>
+        <input type="text" id="material" name="material">
+        <label for="mass">Mass (kg):</label>
+        <input type="number" id="mass" name="mass">
+        <label for="time">Time (hours):</label>
+        <input type="number" id="time" name="time">
+        <button type="submit">Calculate</button>
+    </form>
+    <h2>Results</h2>
+    <div id="results"></div>
+    <script>
+        document.getElementById('burnRateForm').onsubmit = function(event) {
+            event.preventDefault();
+            const mass = parseFloat(document.getElementById('mass').value);
+            const time = parseFloat(document.getElementById('time').value);
+            const burnRate = mass / time;
+            document.getElementById('results').innerHTML = `<p>Burn Rate: ${burnRate.toFixed(2)} kg/h</p>`;
+        };
+    </script>
+</body>
+</html>
